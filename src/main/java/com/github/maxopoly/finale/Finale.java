@@ -4,7 +4,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginManager;
 
+import com.github.maxopoly.finale.classes.ability.AbilityManager;
 import com.github.maxopoly.finale.external.CombatTagPlusManager;
+import com.github.maxopoly.finale.listeners.ClassListener;
 import com.github.maxopoly.finale.listeners.DamageListener;
 import com.github.maxopoly.finale.listeners.EnchantmentDisableListener;
 import com.github.maxopoly.finale.listeners.PearlCoolDownListener;
@@ -22,12 +24,21 @@ public class Finale extends ACivMod {
 	public static Finale getPlugin() {
 		return instance;
 	}
-
+	
+	private AbilityManager abilityManager;
+	
 	private FinaleManager manager;
 
 	private CombatTagPlusManager ctpManager;
 
 	private ConfigParser config;
+	
+	public AbilityManager getAbilityManager() {
+		if (abilityManager == null) {
+			abilityManager = new AbilityManager();
+		}
+		return abilityManager;
+	}
 
 	public CombatTagPlusManager getCombatTagPlusManager() {
 		return ctpManager;
@@ -80,12 +91,14 @@ public class Finale extends ACivMod {
 		Bukkit.getPluginManager().registerEvents(new PotionListener(config.getPotionHandler()), this);
 		Bukkit.getPluginManager().registerEvents(new VelocityFixListener(config.getVelocityHandler()), this);
 		Bukkit.getPluginManager().registerEvents(new DamageListener(config.getDamageModifiers()), this);
+		Bukkit.getPluginManager().registerEvents(new ClassListener(), this);
 	}
 
 	public void reload() {
 		onDisable();
 		config = new ConfigParser(this);
 		manager = config.parse();
+		getAbilityManager();
 		initExternalManagers();
 		registerListener();
 	}

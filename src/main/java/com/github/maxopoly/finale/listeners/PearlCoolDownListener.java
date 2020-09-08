@@ -1,9 +1,6 @@
 package com.github.maxopoly.finale.listeners;
 
 import java.text.DecimalFormat;
-import java.util.Collections;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -19,11 +16,11 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import com.github.maxopoly.finale.Finale;
 import com.github.maxopoly.finale.external.CombatTagPlusManager;
 
-import vg.civcraft.mc.civmodcore.ui.ActionBarHandler;
-import vg.civcraft.mc.civmodcore.ui.UI;
-import vg.civcraft.mc.civmodcore.ui.UIHandler;
-import vg.civcraft.mc.civmodcore.ui.UIManager;
-import vg.civcraft.mc.civmodcore.ui.UIScoreboard;
+import io.jayms.serenno.ui.ActionBarHandler;
+import io.jayms.serenno.ui.UI;
+import io.jayms.serenno.ui.UIHandler;
+import io.jayms.serenno.ui.UIManager;
+import io.jayms.serenno.ui.UIScoreboard;
 import vg.civcraft.mc.civmodcore.util.cooldowns.TickCoolDownHandler;
 
 public class PearlCoolDownListener implements Listener {
@@ -86,7 +83,7 @@ public class PearlCoolDownListener implements Listener {
 						return sb;
 					}
 					
-					sb.append("   " + ChatColor.DARK_PURPLE + ChatColor.BOLD + "Enderpearl: " + ChatColor.LIGHT_PURPLE + formatCoolDown(player.getUniqueId()) + ChatColor.DARK_PURPLE + "s" + "   ");
+					sb.append("  " + ChatColor.DARK_PURPLE + ChatColor.BOLD + "Enderpearl: " + ChatColor.LIGHT_PURPLE + formatCoolDown(player.getUniqueId()) + ChatColor.DARK_PURPLE + "s" + "  ");
 					return sb;
 				}
 			});

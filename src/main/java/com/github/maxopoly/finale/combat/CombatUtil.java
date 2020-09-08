@@ -5,63 +5,67 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.bukkit.craftbukkit.v1_13_R2.entity.CraftLivingEntity;
-import org.bukkit.craftbukkit.v1_13_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_12_R1.entity.CraftLivingEntity;
+import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityCombustByEntityEvent;
 import org.bukkit.event.player.PlayerVelocityEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import com.github.maxopoly.finale.Finale;
 import com.github.maxopoly.finale.combat.event.CritHitEvent;
 
-import net.minecraft.server.v1_13_R2.DamageSource;
-import net.minecraft.server.v1_13_R2.EnchantmentManager;
-import net.minecraft.server.v1_13_R2.Entity;
-import net.minecraft.server.v1_13_R2.EntityArmorStand;
-import net.minecraft.server.v1_13_R2.EntityComplexPart;
-import net.minecraft.server.v1_13_R2.EntityHuman;
-import net.minecraft.server.v1_13_R2.EntityLiving;
-import net.minecraft.server.v1_13_R2.EntityPlayer;
-import net.minecraft.server.v1_13_R2.EnumHand;
-import net.minecraft.server.v1_13_R2.EnumMonsterType;
-import net.minecraft.server.v1_13_R2.GenericAttributes;
-import net.minecraft.server.v1_13_R2.IComplex;
-import net.minecraft.server.v1_13_R2.ItemStack;
-import net.minecraft.server.v1_13_R2.ItemSword;
-import net.minecraft.server.v1_13_R2.MathHelper;
-import net.minecraft.server.v1_13_R2.MobEffects;
-import net.minecraft.server.v1_13_R2.PacketPlayOutEntityVelocity;
-import net.minecraft.server.v1_13_R2.Particles;
-import net.minecraft.server.v1_13_R2.SoundEffects;
-import net.minecraft.server.v1_13_R2.StatisticList;
-import net.minecraft.server.v1_13_R2.World;
-import net.minecraft.server.v1_13_R2.WorldServer;
+import net.minecraft.server.v1_12_R1.DamageSource;
+import net.minecraft.server.v1_12_R1.EnchantmentManager;
+import net.minecraft.server.v1_12_R1.Entity;
+import net.minecraft.server.v1_12_R1.EntityArmorStand;
+import net.minecraft.server.v1_12_R1.EntityComplexPart;
+import net.minecraft.server.v1_12_R1.EntityHuman;
+import net.minecraft.server.v1_12_R1.EntityLiving;
+import net.minecraft.server.v1_12_R1.EntityPlayer;
+import net.minecraft.server.v1_12_R1.EnumHand;
+import net.minecraft.server.v1_12_R1.EnumMonsterType;
+import net.minecraft.server.v1_12_R1.EnumParticle;
+import net.minecraft.server.v1_12_R1.GenericAttributes;
+import net.minecraft.server.v1_12_R1.IComplex;
+import net.minecraft.server.v1_12_R1.ItemStack;
+import net.minecraft.server.v1_12_R1.ItemSword;
+import net.minecraft.server.v1_12_R1.MathHelper;
+import net.minecraft.server.v1_12_R1.MobEffects;
+import net.minecraft.server.v1_12_R1.PacketPlayOutEntityVelocity;
+import net.minecraft.server.v1_12_R1.PacketPlayOutNamedSoundEffect;
+import net.minecraft.server.v1_12_R1.SoundCategory;
+import net.minecraft.server.v1_12_R1.SoundEffect;
+import net.minecraft.server.v1_12_R1.SoundEffects;
+import net.minecraft.server.v1_12_R1.StatisticList;
+import net.minecraft.server.v1_12_R1.World;
+import net.minecraft.server.v1_12_R1.WorldServer;
 
-public class CombatRunnable implements Runnable {
-
-	private Queue<Hit> queuedHits = new ConcurrentLinkedQueue<>();
+public class CombatUtil  {
 	
-	public Queue<Hit> getHitQueue() {
-		return queuedHits;
-	}
-	
-	@Override
-	public void run() {
-		while (!queuedHits.isEmpty()) {
-        	Hit hit = queuedHits.poll();
-        	
-        	EntityPlayer attacker = ((CraftPlayer)hit.getAttacker()).getHandle();
-        	EntityLiving victim = ((CraftLivingEntity)hit.getVictim()).getHandle();
-        	
-        	attack(attacker, victim);
+	 private static void sendSoundEffect(EntityHuman fromEntity, double x, double y, double z, SoundEffect soundEffect, SoundCategory soundCategory, float volume, float pitch) {
+        fromEntity.world.a(fromEntity, x, y, z, soundEffect, soundCategory, volume, pitch); // This will not send the effect to the entity himself
+        if (fromEntity instanceof EntityPlayer) {
+            ((EntityPlayer) fromEntity).playerConnection.sendPacket(new PacketPlayOutNamedSoundEffect(soundEffect, soundCategory, x, y, z, volume, pitch));
         }
-	}
+    }
+	 
+	 public static void attack(Player attacker, LivingEntity victim) {
+			new BukkitRunnable() {
+				
+				@Override
+				public void run() {
+					attack(((CraftPlayer) attacker).getHandle(), ((CraftLivingEntity) victim).getHandle());
+				}
+				
+			}.runTask(Finale.getPlugin());
+		}
 	
 	public static void attack(EntityHuman attacker, Entity entity) {
 		CombatConfig config = Finale.getPlugin().getManager().getCombatConfig();
-        if (entity.bk()) {
+        if (entity.bd()) {
             if (!entity.t(attacker)) {
                 float f = (float) attacker.getAttributeInstance(GenericAttributes.ATTACK_DAMAGE).getValue();
                 float f1;
@@ -74,28 +78,28 @@ public class CombatRunnable implements Runnable {
                 
                 float f2 = 1;
                 if (!config.isNoCooldown()) {
-	                f2 = attacker.r(0.5F);
-	
+                	f2 = attacker.n(0.5F);
 	                f *= 0.2F + f2 * f2 * 0.8F;
 	                f1 *= f2;
                 }
                 World world = attacker.getWorld();
-                attacker.dH();
+                attacker.ds();
                 if (f > 0.0F || f1 > 0.0F) {
                 	boolean flag = f2 > 0.9F;
                     byte b0 = 0;
                     boolean flag1 = false;
                     int i = b0 + EnchantmentManager.b((EntityLiving) attacker);
+                    boolean sprinting = attacker.isSprinting();
 
-                    if (attacker.isSprinting() && flag) {
+                    if (sprinting && flag) {
                     	if (config.getCombatSounds().isKnockbackEnabled()) {
-                    		attacker.world.a(attacker, attacker.locX, attacker.locY, attacker.locZ, SoundEffects.ENTITY_PLAYER_ATTACK_KNOCKBACK, attacker.bV(), 1.0F, 1.0F); // Paper - send while respecting visibility
+                    		sendSoundEffect(attacker, attacker.locX, attacker.locY, attacker.locZ, SoundEffects.fw, attacker.bK(), 1.0F, 1.0F); // Paper - send while respecting visibility
                     	}
                         ++i;
                         flag1 = true;
                     }
 
-                    boolean flag2 = attacker.fallDistance > 0.0F && !attacker.onGround && !attacker.z_() && !attacker.isInWater() && !attacker.hasEffect(MobEffects.BLINDNESS) && !attacker.isPassenger() && entity instanceof EntityLiving;
+                    boolean flag2 = attacker.fallDistance > 0.0F && !attacker.onGround && !attacker.m_() && !attacker.isInWater() && !attacker.hasEffect(MobEffects.BLINDNESS) && !attacker.isPassenger() && entity instanceof EntityLiving;
                     flag2 = flag2 && !attacker.isSprinting();
                     if (flag2) {
                     	double critMultiplier = 1.5d;
@@ -108,7 +112,6 @@ public class CombatRunnable implements Runnable {
                     	
                         f *= critMultiplier;
                     }
-
                     f += f1;
                     boolean flag3 = false;
                     double d0 = (double) (attacker.K - attacker.J);
@@ -146,15 +149,34 @@ public class CombatRunnable implements Runnable {
                     boolean flag5 = entity.damageEntity(DamageSource.playerAttack(attacker), f);
 
                     if (flag5) {
-                        if (i > 0) {
-                        	entity.f((double) (-MathHelper.sin(attacker.yaw * 3.1415927F / 180.0F) * (float) i * 0.5F) * config.getHorizontalKB(),
-                        			0.1D * config.getVerticalKB(),
-                        			(double) (MathHelper.cos(attacker.yaw * 3.1415927F / 180.0F) * (float) i * 0.5F) * config.getHorizontalKB());
+                    	double x = (double) (-MathHelper.sin(attacker.yaw * 3.1415927F / 180.0F) * 0.5F) * i * config.getHorizontalKB();
+                    	double y = 0.1D * config.getVerticalKB();
+                    	double z = (double) (MathHelper.cos(attacker.yaw * 3.1415927F / 180.0F) * 0.5F) * i * config.getHorizontalKB();
+                    	if (sprinting) {
+                    		x *= config.getSprintHorizontal();
+                    		y *= config.getSprintVertical();
+                    		z *= config.getSprintHorizontal();
+                    	}
+                    	if (!entity.onGround) {
+                    		x *= config.getAirHorizontal();
+                    		y *= config.getAirVertical();
+                    		z *= config.getAirHorizontal();
+                    	}
+                    	if (entity.isInWater()) {
+                    		x *= config.getWaterHorizontal();
+                    		y *= config.getWaterVertical();
+                    		z *= config.getWaterHorizontal();
+                    	}
+                    	entity.f(x, y, z);
+                    	d1 = x;
+                    	d2 = y;
+                    	d3 = z;
 
-                        	attacker.motX *= 0.6D;
-                        	attacker.motZ *= 0.6D;
-                        	attacker.setSprinting(false);
-                        }
+                    	attacker.motX *= config.getAttackMotionModifier();
+                    	attacker.motZ *= config.getAttackMotionModifier();
+                    	attacker.setSprinting(!config.isStopSprinting());
+                    	
+                    	//((CraftPlayer)attacker.getBukkitEntity()).sendMessage("motX: " + entity.motX + ", motY: " + entity.motY + ", motZ: " + entity.motZ + ", onGround: " + entity.onGround);
                         
                         if (flag3 && config.isSweepEnabled()) {
                             float f4 = 1.0F + EnchantmentManager.a((EntityLiving) attacker) * f;
@@ -173,8 +195,8 @@ public class CombatRunnable implements Runnable {
                                 }
                             }
 
-                            attacker.world.a(attacker, attacker.locX, attacker.locY, attacker.locZ, SoundEffects.ENTITY_PLAYER_ATTACK_SWEEP, attacker.bV(), 1.0F, 1.0F); // Paper - send while respecting visibility
-                            attacker.dl();
+                            attacker.world.a(attacker, attacker.locX, attacker.locY, attacker.locZ, SoundEffects.fz, attacker.bK(), 1.0F, 1.0F); // Paper - send while respecting visibility
+                            attacker.cX();
                         }
 
                         if (entity instanceof EntityPlayer && entity.velocityChanged) {
@@ -203,24 +225,24 @@ public class CombatRunnable implements Runnable {
 
                         if (flag2) {
                         	if (config.getCombatSounds().isCritEnabled()) {
-	                        	attacker.world.a((EntityHuman) null, attacker.locX, attacker.locY, attacker.locZ,
-	    								SoundEffects.ENTITY_PLAYER_ATTACK_CRIT, attacker.bV(), 1.0F, 1.0F);
+	                        	sendSoundEffect(attacker, attacker.locX, attacker.locY, attacker.locZ,
+	    								SoundEffects.fv, attacker.bK(), 1.0F, 1.0F);
                         	}
                             attacker.a(entity);
                         }
                         
                         if (!flag2 && !flag3) {
                             if (flag && config.getCombatSounds().isStrongEnabled()) {
-                            	attacker.world.a(attacker, attacker.locX, attacker.locY, attacker.locZ, SoundEffects.ENTITY_PLAYER_ATTACK_STRONG, attacker.bV(), 1.0F, 1.0F); // Paper - send while respecting visibility
+                            	attacker.world.a(attacker, attacker.locX, attacker.locY, attacker.locZ, SoundEffects.fY, attacker.bK(), 1.0F, 1.0F); // Paper - send while respecting visibility
                             } else if (config.getCombatSounds().isWeakEnabled()) {
-                            	attacker.world.a(attacker, attacker.locX, attacker.locY, attacker.locZ, SoundEffects.ENTITY_PLAYER_ATTACK_WEAK, attacker.bV(), 1.0F, 1.0F); // Paper - send while respecting visibility
+                            	attacker.world.a(attacker, attacker.locX, attacker.locY, attacker.locZ, SoundEffects.fA, attacker.bK(), 1.0F, 1.0F); // Paper - send while respecting visibility
                             }
                         }
                         
                         if (f1 > 0.0F) {
                         	attacker.b(entity);
                         }
-
+                        
                         attacker.z(entity);
                         if (entity instanceof EntityLiving) {
                             EnchantmentManager.a((EntityLiving) entity, (Entity) attacker);
@@ -247,8 +269,8 @@ public class CombatRunnable implements Runnable {
 
                         if (entity instanceof EntityLiving) {
                             float f5 = f3 - ((EntityLiving) entity).getHealth();
-
-                            attacker.a(StatisticList.DAMAGE_DEALT, Math.round(f5 * 10.0F));
+                            
+                            attacker.a(StatisticList.y, Math.round(f5 * 10.0F));
                             if (j > 0) {
                                 // CraftBukkit start - Call a combust event when somebody hits with a fire enchanted item
                                 EntityCombustByEntityEvent combustEvent = new EntityCombustByEntityEvent(attacker.getBukkitEntity(), entity.getBukkitEntity(), j * 4);
@@ -263,7 +285,7 @@ public class CombatRunnable implements Runnable {
                             if (world instanceof WorldServer && f5 > 2.0F) {
                                 int k = (int) ((double) f5 * 0.5D);
 
-                                ((WorldServer) world).a(Particles.i, entity.locX,
+                                ((WorldServer) world).a(EnumParticle.DAMAGE_INDICATOR, entity.locX,
     									entity.locY + (double) (entity.length * 0.5F), entity.locZ, k, 0.1D, 0.0D, 0.1D,
     									0.2D);
                             }
@@ -271,6 +293,7 @@ public class CombatRunnable implements Runnable {
 
                         attacker.applyExhaustion(world.spigotConfig.combatExhaustion); // Spigot - Change to use configurable value
                     } else {
+                    	//sendSoundEffect(attacker, attacker.locX, attacker.locY, attacker.locZ, SoundEffects.fx, attacker.bK(), 1.0F, 1.0F); // Paper - send while respecting visibility
                         if (flag4) {
                             entity.extinguish();
                         }
@@ -286,3 +309,4 @@ public class CombatRunnable implements Runnable {
         }
     }
 }
+

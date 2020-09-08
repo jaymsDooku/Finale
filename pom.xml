@@ -30,19 +30,48 @@
 			</resource>
 		</resources>
 		<defaultGoal>clean install</defaultGoal>
+		<plugins>
+			<plugin>
+		      <groupId>org.apache.maven.plugins</groupId>
+		      <artifactId>maven-jar-plugin</artifactId>
+		      <version>2.4</version>
+		      <configuration>
+		        <outputDirectory>C:/Users/james/OneDrive/Desktop/Minecraft Related/1.12.2 Server/plugins</outputDirectory>
+		      </configuration>
+		    </plugin>
+		</plugins>
 	</build>
 
 	<dependencies>
+		<!--Bukkit API -->
+	    <dependency>
+	       <groupId>org.bukkit</groupId>
+	       <artifactId>bukkit</artifactId>
+	       <version>1.12.2-R0.1-SNAPSHOT</version>
+	       <scope>provided</scope>
+	    </dependency>
 		<dependency>
 			<groupId>org.spigotmc</groupId>
 			<artifactId>spigot</artifactId>
-			<version>1.13.2-R0.1-SNAPSHOT</version>
+			<version>1.12.2-R0.1-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
+		    <groupId>com.destroystokyo.paper</groupId>
+		    <artifactId>paper-api</artifactId>
+		    <version>1.12.2-R0.1-SNAPSHOT</version>
+		    <scope>provided</scope>
+		 </dependency>
+		<dependency>
+	  		<groupId>io.jayms.serenno</groupId>
+	  		<artifactId>Serenno-Common</artifactId>
+	  		<version>0.0.1-SNAPSHOT</version>
+	  		<scope>provided</scope>
+	  	</dependency>
+		<dependency>
 			<groupId>vg.civcraft.mc.civmodcore</groupId>
 			<artifactId>CivModCore</artifactId>
-			<version>1.7.3</version>
+			<version>1.6.2</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -61,8 +90,8 @@
 
 	<repositories>
 		<repository>
-			<id>spigot-repo</id>
-			<url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+		    <id>papermc</id>
+		    <url>https://papermc.io/repo/repository/maven-public/</url>
 		</repository>
 		<repository>
 			<id>Devoted-repo</id>
@@ -73,8 +102,8 @@
 			<url>http://repo.byteflux.net/repository/maven-releases/</url>
 		</repository>
 		<repository>
-		    <id>dmulloy2-repo</id>
-			<url>http://repo.dmulloy2.net/nexus/repository/public/</url>
-		</repository>
+		<id>dmulloy2-repo</id>
+		<url>http://repo.dmulloy2.net/nexus/repository/public/</url>
+	</repository>
 	</repositories>
 </project>
